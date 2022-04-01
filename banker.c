@@ -27,7 +27,7 @@ int need[NUMBER_OF_CUSTOMERS][NUMBER_OF_RESOURCES];
 pthread_mutex_t mutex;
 
 void *customer() {
-
+    
 }
 int main(int argc, char *argv[]) {
     pthread_t th[NUMBER_OF_CUSTOMERS];
