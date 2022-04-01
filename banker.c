@@ -4,7 +4,7 @@
 #include <stdbool.h> 
 #include <unistd.h> 
 #include <signal.h> 
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/wait.h> 
 #include <pthread.h>
 
@@ -26,9 +26,39 @@ int need[NUMBER_OF_CUSTOMERS][NUMBER_OF_RESOURCES];
 
 pthread_mutex_t mutex;
 
-void *customer() {
-    
+// return 0 if successful (request has been granted), return -1 if unsuccessful
+// request random numbers of resources
+int request_resources(int customer_num, int request[]) {
+    for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
+        if (request[m] <= need[customer_num][m]) {
+            if (request[m] <= available[m]) {
+                // pretend to allocate requested resources
+                available[m] -= request[m];
+                allocation[customer_num][m] += request[m];
+                need[customer_num][m] -= request[m];
+            }
+            else {
+                // process must wait for resource to be available (unsafe state) 
+                return -1;
+            }
+        }
+        else {
+            // process has exceeded its maximun claim (unsafe state)
+            return -1;
+        }
+    }
+    return 0;
 }
+
+// return 0 if successful (request has been granted), return -1 if unsuccessful
+// releases random numbers of resources
+int release_resources(int customer_num, int release[]) {
+    return 0;
+}
+
+void *customer() {
+}
+    
 int main(int argc, char *argv[]) {
     pthread_t th[NUMBER_OF_CUSTOMERS];
     pthread_mutex_init(&mutex, NULL);
@@ -36,21 +66,25 @@ int main(int argc, char *argv[]) {
     if (argc != NUMBER_OF_RESOURCES + 1) {
         exit(EXIT_FAILURE);
     }
+
     // allocates the number of available resources
     for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
         available[m] = atoi(argv[m + 1]);
     }
+
+    printf("----Max----\n");
     // allocates the maximum demand of each customer
     for (int n = 0; n < NUMBER_OF_CUSTOMERS; n++) {
         for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
             allocation[n][m] = 0;
             // choose a random resource
             maximum[n][m] = rand() % (available[m] + 1);
-            need[n][m] = maximum[n][m];
+            need[n][m] = maximum[n][m] - allocation[n][m];
             printf("%3d", maximum[n][m]);
         }
         printf("\n");
     }
+
     // create n customer threads
     for (int n = 0; n < NUMBER_OF_CUSTOMERS; n++) {
         int *cust = malloc(sizeof(*cust));
@@ -58,6 +92,7 @@ int main(int argc, char *argv[]) {
 
         pthread_create(&th[n], NULL, &customer, cust);
     }
+
     // join n customer threads
     for (int n = 0; n < NUMBER_OF_CUSTOMERS; n++) {
         pthread_join(th[n], 0);
