@@ -31,13 +31,13 @@ pthread_mutex_t mutex;
 int request_resources(int customer_num, int request[NUMBER_OF_RESOURCES]) {
     for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
         if (request[m] <= need[customer_num][m]) {
-            printf("request is %d need is %d\n", request[m], need[customer_num][m]);
             if (request[m] <= available[m]) {
-                printf("request is %d avalibility is %d\n", request[m], available[m]);
+                printf("request is %d need is %d and avalibility is %d\n", request[m], need[customer_num][m], available[m]);
                 // pretend to allocate requested resources
                 available[m] -= request[m];
                 allocation[customer_num][m] += request[m];
                 need[customer_num][m] -= request[m];
+                printf("avalible is %d allocation is %d and need is %d\n", available[m], allocation[customer_num][m], need[customer_num][m]);
             }
             else {
                 // process must wait for resource to be available (unsafe state) 
