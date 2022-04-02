@@ -28,10 +28,13 @@ pthread_mutex_t mutex;
 
 // return 0 if successful (request has been granted), return -1 if unsuccessful
 // request random numbers of resources
-int request_resources(int customer_num, int request[]) {
+int request_resources(int customer_num, int request[NUMBER_OF_RESOURCES]) {
     for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
+        printf("requested %d is %d\n", m, request[m]);
         if (request[m] <= need[customer_num][m]) {
+            printf("request is %d need is %d\n", request[m], need[customer_num][m]);
             if (request[m] <= available[m]) {
+                printf("request is %d avalibility is %d\n", request[m], available[m]);
                 // pretend to allocate requested resources
                 available[m] -= request[m];
                 allocation[customer_num][m] += request[m];
@@ -47,13 +50,15 @@ int request_resources(int customer_num, int request[]) {
             return -1;
         }
     }
+    printf("exited for loop\n");
     return 0;
 }
 
 // return 0 if successful (request has been granted), return -1 if unsuccessful
 // releases random numbers of resources
-int release_resources(int customer_num, int release[]) {
+int release_resources(int customer_num, int release[NUMBER_OF_RESOURCES]) {
     for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
+        printf("released %d is %d\n", m, release[m]);
         // release the allocation
         available[m] += release[m];
         allocation[customer_num][m] -= release[m];
@@ -68,11 +73,30 @@ int release_resources(int customer_num, int release[]) {
 
 void *customer(void *customer_num) {
     int customer = *(int *)customer_num;
+    int safe = -1;
+    // array consisting of requests made to each resource
     int request[NUMBER_OF_RESOURCES];
-    printf("the customer num is %d\n", customer);
+    // printf("the customer num is %d\n", customer);
+    // generate the request for each resoruce (should be less then the max demand for given process)
     for (int i = 0; i < NUMBER_OF_RESOURCES; i++) {
         request[i] = rand() % (maximum[customer][i] + 1);
         printf("the max is %d and the request is %d\n", maximum[customer][i], request[i]);
+    }
+
+    pthread_mutex_lock(&mutex);
+    /* Critical Section*/
+    safe = request_resources(customer, request);
+    printf("request safe: %d\n", safe);
+    pthread_mutex_destroy(&mutex);
+
+    if (safe == 0) {
+        safe = -1;
+        pthread_mutex_lock(&mutex);
+        printf("release safe %d\n", release_resources(customer, request));
+        pthread_mutex_destroy(&mutex);
+    }
+    else {
+        printf("Unsuccessful\n");
     }
 }
     
@@ -111,7 +135,7 @@ int main(int argc, char *argv[]) {
 
     // join n customer threads
     for (int n = 0; n < NUMBER_OF_CUSTOMERS; n++) {
-        pthread_join(th[n], 0);
+        pthread_join(th[n], NULL);
     }
 
     pthread_mutex_destroy(&mutex);
