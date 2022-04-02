@@ -66,7 +66,14 @@ int release_resources(int customer_num, int release[]) {
     return 0;
 }
 
-void *customer() {
+void *customer(void *customer_num) {
+    int customer = *(int *)customer_num;
+    int request[NUMBER_OF_RESOURCES];
+    printf("the customer num is %d\n", customer);
+    for (int i = 0; i < NUMBER_OF_RESOURCES; i++) {
+        request[i] = rand() % (maximum[customer][i] + 1);
+        printf("the max is %d and the request is %d\n", maximum[customer][i], request[i]);
+    }
 }
     
 int main(int argc, char *argv[]) {
@@ -99,7 +106,6 @@ int main(int argc, char *argv[]) {
     for (int n = 0; n < NUMBER_OF_CUSTOMERS; n++) {
         int *cust = malloc(sizeof(*cust));
         *cust = n;
-
         pthread_create(&th[n], NULL, &customer, cust);
     }
 
