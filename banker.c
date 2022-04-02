@@ -30,7 +30,6 @@ pthread_mutex_t mutex;
 // request random numbers of resources
 int request_resources(int customer_num, int request[NUMBER_OF_RESOURCES]) {
     for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
-        printf("requested %d is %d\n", m, request[m]);
         if (request[m] <= need[customer_num][m]) {
             printf("request is %d need is %d\n", request[m], need[customer_num][m]);
             if (request[m] <= available[m]) {
@@ -50,7 +49,6 @@ int request_resources(int customer_num, int request[NUMBER_OF_RESOURCES]) {
             return -1;
         }
     }
-    printf("exited for loop\n");
     return 0;
 }
 
@@ -87,13 +85,13 @@ void *customer(void *customer_num) {
     /* Critical Section*/
     safe = request_resources(customer, request);
     printf("request safe: %d\n", safe);
-    pthread_mutex_destroy(&mutex);
+    pthread_mutex_unlock(&mutex);
 
     if (safe == 0) {
         safe = -1;
         pthread_mutex_lock(&mutex);
         printf("release safe %d\n", release_resources(customer, request));
-        pthread_mutex_destroy(&mutex);
+        pthread_mutex_unlock(&mutex);
     }
     else {
         printf("Unsuccessful\n");
