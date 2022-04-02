@@ -53,6 +53,16 @@ int request_resources(int customer_num, int request[]) {
 // return 0 if successful (request has been granted), return -1 if unsuccessful
 // releases random numbers of resources
 int release_resources(int customer_num, int release[]) {
+    for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
+        // release the allocation
+        available[m] += release[m];
+        allocation[customer_num][m] -= release[m];
+        need[customer_num][m] += release[m];
+        // if the release is invalid return unsuccessful
+        if (allocation[customer_num][m] < 0 || need[customer_num][m] < 0) {
+            return -1;
+        }
+    }
     return 0;
 }
 
