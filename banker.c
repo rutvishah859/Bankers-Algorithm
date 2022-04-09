@@ -32,12 +32,12 @@ int request_resources(int customer_num, int request[NUMBER_OF_RESOURCES]) {
     for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
         if (request[m] <= need[customer_num][m]) {
             if (request[m] <= available[m]) {
-                printf("request is %d need is %d and avalibility is %d\n", request[m], need[customer_num][m], available[m]);
+                // printf("request is %d need is %d and avalibility is %d\n", request[m], need[customer_num][m], available[m]);
                 // pretend to allocate requested resources
                 available[m] -= request[m];
                 allocation[customer_num][m] += request[m];
                 need[customer_num][m] -= request[m];
-                printf("avalible is %d allocation is %d and need is %d\n", available[m], allocation[customer_num][m], need[customer_num][m]);
+                // printf("avalible is %d allocation is %d and need is %d\n", available[m], allocation[customer_num][m], need[customer_num][m]);
             }
             else {
                 // process must wait for resource to be available (unsafe state) 
@@ -56,7 +56,7 @@ int request_resources(int customer_num, int request[NUMBER_OF_RESOURCES]) {
 // releases random numbers of resources
 int release_resources(int customer_num, int release[NUMBER_OF_RESOURCES]) {
     for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
-        printf("released %d is %d\n", m, release[m]);
+        // printf("released %d is %d\n", m, release[m]);
         // release the allocation
         available[m] += release[m];
         allocation[customer_num][m] -= release[m];
@@ -78,19 +78,20 @@ void *customer(void *customer_num) {
     // generate the request for each resoruce (should be less then the max demand for given process)
     for (int i = 0; i < NUMBER_OF_RESOURCES; i++) {
         request[i] = rand() % (maximum[customer][i] + 1);
-        printf("the max is %d and the request is %d\n", maximum[customer][i], request[i]);
+        // printf("the max is %d and the request is %d\n", maximum[customer][i], request[i]);
     }
 
     pthread_mutex_lock(&mutex);
     /* Critical Section*/
     safe = request_resources(customer, request);
-    printf("request safe: %d\n", safe);
+    // printf("request safe: %d\n", safe);
     pthread_mutex_unlock(&mutex);
 
     if (safe == 0) {
         safe = -1;
         pthread_mutex_lock(&mutex);
-        printf("release safe %d\n", release_resources(customer, request));
+        release_resources(customer, request);
+        // printf("release safe %d\n", release_resources(customer, request));
         pthread_mutex_unlock(&mutex);
     }
     else {
@@ -111,6 +112,17 @@ int main(int argc, char *argv[]) {
         available[m] = atoi(argv[m + 1]);
     }
 
+    printf("\n---------------------------BEFORE------------------------------\n");
+
+    printf("----Allocation----\n");
+    // allocates the maximum demand of each customer
+    for (int n = 0; n < NUMBER_OF_CUSTOMERS; n++) {
+        for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
+            printf("%3d", allocation[n][m]);
+        }
+        printf("\n");
+    }
+
     printf("----Max----\n");
     // allocates the maximum demand of each customer
     for (int n = 0; n < NUMBER_OF_CUSTOMERS; n++) {
@@ -123,6 +135,11 @@ int main(int argc, char *argv[]) {
         }
         printf("\n");
     }
+    printf("----Available----\n");
+    for(int i = 0; i < 3; i++){
+        printf("%3d", available[i]);
+    }
+    printf("\n");
 
     // create n customer threads
     for (int n = 0; n < NUMBER_OF_CUSTOMERS; n++) {
@@ -136,6 +153,44 @@ int main(int argc, char *argv[]) {
         pthread_join(th[n], NULL);
     }
 
+    printf("\n---------------------------AFTER------------------------------\n");
+
+
+    
+    
+
+
     pthread_mutex_destroy(&mutex);
+
+    printf("----Allocation:----\n");
+
+    for (int i = 0; i < NUMBER_OF_CUSTOMERS; i++){
+
+        for (int j = 0; j < NUMBER_OF_RESOURCES; j++){
+
+            printf("%3d", allocation[i][j]);
+    
+        }
+        printf("\n");
+    }
+
+    printf("\n----Max:----\n");
+    for (int i = 0; i < NUMBER_OF_CUSTOMERS; i++){
+
+        for (int j = 0; j < NUMBER_OF_RESOURCES; j++){
+
+            printf("%3d", maximum[i][j]);
+    
+        }
+        printf("\n");
+    }
+
+    printf("----Available:----\n");
+    for (int i = 0; i < NUMBER_OF_RESOURCES; i++){
+        printf("%3d", available[i]);
+    }
+
+    printf("\n");
+    
     exit(EXIT_SUCCESS);
 }
