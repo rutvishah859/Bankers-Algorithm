@@ -24,6 +24,10 @@ int allocation[NUMBER_OF_CUSTOMERS][NUMBER_OF_RESOURCES];
 /* the remaining need of each customer */ 
 int need[NUMBER_OF_CUSTOMERS][NUMBER_OF_RESOURCES];
 
+int served[NUMBER_OF_CUSTOMERS] = {0, 0, 0, 0, 0};
+
+int xyz = 0;
+
 pthread_mutex_t mutex;
 
 // return 0 if successful (request has been granted), return -1 if unsuccessful
@@ -58,6 +62,8 @@ int release_resources(int customer_num, int release[NUMBER_OF_RESOURCES]) {
     for (int m = 0; m < NUMBER_OF_RESOURCES; m++) {
         // printf("released %d is %d\n", m, release[m]);
         // release the allocation
+        xyz += 1;
+        served[customer_num] = xyz;
         available[m] += release[m];
         allocation[customer_num][m] -= release[m];
         need[customer_num][m] += release[m];
@@ -165,7 +171,6 @@ int main(int argc, char *argv[]) {
     printf("----Allocation:----\n");
 
     for (int i = 0; i < NUMBER_OF_CUSTOMERS; i++){
-
         for (int j = 0; j < NUMBER_OF_RESOURCES; j++){
 
             printf("%3d", allocation[i][j]);
@@ -188,6 +193,13 @@ int main(int argc, char *argv[]) {
     printf("----Available:----\n");
     for (int i = 0; i < NUMBER_OF_RESOURCES; i++){
         printf("%3d", available[i]);
+    }
+
+    printf("\n");
+
+    printf("----Serving order:----\n");
+    for (int i = 0; i < NUMBER_OF_CUSTOMERS; i++){
+        printf("P%d: %d|\t", i, served[i]/3);
     }
 
     printf("\n");
